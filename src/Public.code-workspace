@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"path": "../../../../mqtt-web-dashboard/Public"
+		},
+		{
+			"name": "TagReader_RabbitMQConnectionforEsp",
+			"path": ".."
+		}
+	],
+	"settings": {}
+}
