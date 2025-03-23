@@ -43,7 +43,7 @@ void setup() {
   mfrc522.PCD_Init();
   delay(4);
   mfrc522.PCD_DumpVersionToSerial();
-  Serial.println(F("Scan an RFID card to read data from block 4..."));
+  Serial.println(F("Scan an RFID card to read data from Block 4..."));
 
   // Default key for authentication (Factory default: 0xFFFFFFFFFFFF)
   for (byte i = 0; i < 6; i++) {
@@ -112,19 +112,26 @@ void loop() {
     return;
   }
   
-  // Blok verisini oku
-  status = mfrc522.MIFARE_Read(block, buffer, &bufferSize);
-  if (status != MFRC522::STATUS_OK) {
-    Serial.print(F("Read failed: "));
-    Serial.println(mfrc522.GetStatusCodeName(status));
-  } else {
-    // Okunan 16 baytı hex string olarak birleştiriyoruz
-    String dataString = "";
-    for (byte i = 0; i < 16; i++) {
-      if (buffer[i] < 0x10) dataString += "0";
-      dataString += String(buffer[i], HEX);
-    }
-    dataString.toUpperCase();
+   // Blok verisini oku
+ status = mfrc522.MIFARE_Read(block, buffer, &bufferSize);
+ if (status != MFRC522::STATUS_OK) {
+   Serial.print(F("Read failed: "));
+   Serial.println(mfrc522.GetStatusCodeName(status));
+ } else {
+   // Okunan 16 baytı ASCII string olarak birleştiriyoruz
+   String dataString = "";
+   for (byte i = 0; i < 16; i++) {
+     dataString += (char) buffer[i];
+   }
+
+  // Aynı veriyi tekrardan göndermemek için ya da belirli süre geçtiyse yayınla
+  if (dataString != lastData || (currentMillis - lastDataPublishTime >= dataPublishCooldown)) {
+    mqttClient.publish("test_queue", dataString.c_str());
+    Serial.print("Published Data (ASCII): ");
+    Serial.println(dataString);
+    lastData = dataString;
+    lastDataPublishTime = currentMillis;
+  }
 
     // Aynı veriyi tekrardan göndermemek için ya da belirli süre geçtiyse yayınla
     if (dataString != lastData || (currentMillis - lastDataPublishTime >= dataPublishCooldown)) {
